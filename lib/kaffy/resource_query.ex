@@ -63,6 +63,7 @@ defmodule Kaffy.ResourceQuery do
   def fetch_list(_, [""]), do: []
 
   def fetch_list(resource, ids) do
+    ids = ids -- ["", nil]
     schema = resource[:schema]
 
     from(s in schema, where: s.id in ^ids)

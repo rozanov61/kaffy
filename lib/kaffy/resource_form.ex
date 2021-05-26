@@ -95,11 +95,11 @@ defmodule Kaffy.ResourceForm do
 
             embed = Kaffy.ResourceSchema.embed_struct(schema, field)
             embed_fields = Kaffy.ResourceSchema.fields(embed)
-            embed_changeset = Ecto.Changeset.change(Map.get(data, field) || embed.__struct__)
-
+            field_data = if is_list(x = Map.get(data, field)), do: hd(x), else: x
+            embed_changeset = Ecto.Changeset.change(field_data || embed.__struct__)
             inputs_for(form, field, fn fp ->
               [
-                {:safe, ~s(<div class="card ml-3" style="padding:15px;">)},
+                {:safe, ~s(<div class="card ml-3" style="padding:5px;">)},
                 Enum.reduce(embed_fields, [], fn f, all ->
                   content_tag :div, class: "form-group" do
                     [

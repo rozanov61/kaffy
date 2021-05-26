@@ -89,7 +89,7 @@ defmodule Kaffy.ResourceForm do
 
         case field do
 
-          {field, %{type: type}} -> build_html_input(old_schema, form, {field, options}, type, opts, readonly)
+          {field, %{type: type}} -> build_html_input(data, form, {field, options}, type, opts, readonly)
 
           _ ->
 

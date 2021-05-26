@@ -50,7 +50,7 @@ defmodule Kaffy.ResourceForm do
       end
 
     permission =
-      case is_nil(changeset.data.id) do
+      case is_nil(Map.get(changeset.data, :id)) do
         true -> Map.get(options, :create, :editable)
         false -> Map.get(options, :update, :editable)
       end
@@ -86,27 +86,36 @@ defmodule Kaffy.ResourceForm do
 
     case type do
       {:embed, _} ->
-        embed = Kaffy.ResourceSchema.embed_struct(schema, field)
-        embed_fields = Kaffy.ResourceSchema.fields(embed)
-        embed_changeset = Ecto.Changeset.change(Map.get(data, field) || embed.__struct__)
 
-        inputs_for(form, field, fn fp ->
-          [
-            {:safe, ~s(<div class="card ml-3" style="padding:15px;">)},
-            Enum.reduce(embed_fields, [], fn f, all ->
-              content_tag :div, class: "form-group" do
-                [
-                  [
-                    form_label(fp, f),
-                    form_field(embed_changeset, fp, {f, options}, class: "form-control")
-                  ]
-                  | all
-                ]
-              end
-            end),
-            {:safe, "</div>"}
-          ]
-        end)
+        case field do
+
+          {field, %{type: type}} -> build_html_input(old_schema, form, {field, options}, type, opts, readonly)
+
+          _ ->
+
+            embed = Kaffy.ResourceSchema.embed_struct(schema, field)
+            embed_fields = Kaffy.ResourceSchema.fields(embed)
+            embed_changeset = Ecto.Changeset.change(Map.get(data, field) || embed.__struct__)
+
+            inputs_for(form, field, fn fp ->
+              [
+                {:safe, ~s(<div class="card ml-3" style="padding:15px;">)},
+                Enum.reduce(embed_fields, [], fn f, all ->
+                  content_tag :div, class: "form-group" do
+                    [
+                      [
+                        form_label(fp, f),
+                        form_field(embed_changeset, fp, {f, options}, class: "form-control")
+                      ]
+                      | all
+                    ]
+                  end
+                end),
+                {:safe, "</div>"}
+              ]
+            end)
+
+        end
 
       :id ->
         case Kaffy.ResourceSchema.primary_key(schema) == [field] do

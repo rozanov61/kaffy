@@ -95,7 +95,12 @@ defmodule Kaffy.ResourceForm do
 
             embed = Kaffy.ResourceSchema.embed_struct(schema, field)
             embed_fields = Kaffy.ResourceSchema.fields(embed)
-            field_data = if is_list(x = Map.get(data, field)), do: hd(x), else: x
+            field_data =
+              case Map.get(data, field) do
+                [] -> nil
+                [x | _] -> x
+                value -> value
+              end
             embed_changeset = Ecto.Changeset.change(field_data || embed.__struct__)
             inputs_for(form, field, fn fp ->
               [

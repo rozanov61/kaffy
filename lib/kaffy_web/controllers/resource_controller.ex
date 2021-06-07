@@ -134,6 +134,9 @@ defmodule KaffyWeb.ResourceController do
       true ->
         entry = Kaffy.ResourceQuery.fetch_resource(conn, my_resource, id)
         changes = Map.get(params, resource, %{})
+        changes = if changes == %{},
+          do: Map.get(params, Macro.underscore(resource), %{}),
+            else: changes
 
         case Kaffy.ResourceCallbacks.update_callbacks(conn, my_resource, entry, changes) do
           {:ok, entry} ->

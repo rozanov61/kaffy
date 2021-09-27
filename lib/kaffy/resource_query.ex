@@ -145,7 +145,11 @@ defmodule Kaffy.ResourceQuery do
     query = build_filtered_fields_query(query, filtered_fields)
 
     limited_query =
-      from(s in query, limit: ^per_page, offset: ^current_offset, order_by: ^ordering)
+      if ordering in schema.__schema__(:fields) do
+        from(s in query, limit: ^per_page, offset: ^current_offset, order_by: ^ordering)
+      else
+        from(s in query, limit: ^per_page, offset: ^current_offset)
+      end
 
     {query, limited_query}
   end

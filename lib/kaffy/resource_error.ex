@@ -49,6 +49,6 @@ defmodule Kaffy.ResourceError do
   defp is_field_in_form?(field, conn) do
     # check if field is part of the form, as we are showing inlines errors we don't want to show them twice.
     # This is needed as some field error might not be inlines, for instance for a required field from changetset that's not displayed in the form
-    conn.params[conn.assigns.resource] |> Map.has_key?(Atom.to_string(field))
+    (conn.params[conn.assigns.resource] || %{}) |> Map.has_key?(Atom.to_string(field))
   end
 end

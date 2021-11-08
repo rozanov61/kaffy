@@ -228,6 +228,9 @@ defmodule KaffyWeb.ResourceController do
     my_resource = Kaffy.Utils.get_resource(conn, context, resource)
     params = Kaffy.ResourceParams.decode_map_fields(resource, my_resource[:schema], params)
     changes = Map.get(params, resource, %{})
+    changes = if changes == %{},
+      do: Map.get(params, Macro.underscore(resource), %{}),
+        else: changes
     resource_name = Kaffy.ResourceAdmin.singular_name(my_resource)
 
     case can_proceed?(my_resource, conn) do

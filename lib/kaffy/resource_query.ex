@@ -103,6 +103,25 @@ defmodule Kaffy.ResourceQuery do
     end)
   end
 
+  defp build_search_query(query, _search_fields, term, join \\ :first)
+  defp build_search_query(query, _search_fields, "", _join), do: query
+  defp build_search_query(query, [{k, v} | tail], term, :first) do
+    query
+    |> join(:inner, [q], a in assoc(q, ^k))
+    |> build_search_query(v, term, :last)
+    |> build_search_query(tail, term)
+  end
+  defp build_search_query(query, [{k, v} | tail], term, :last) do
+    query
+    |> join(:inner, [..., q], a in assoc(q, ^k))
+    |> build_search_query(v, term)
+    |> build_search_query(tail, term)
+  end
+  defp build_search_query(query, search_fields, term, _join) when is_list(search_fields),
+    do: Enum.reduce(search_fields, query, fn f, q -> or_where(q, [..., r], ilike(type(field(r, ^f), :string), ^term)) end)
+  defp build_search_query(query, search_fields, term, _join),
+    do: or_where(query, [..., r], ilike(type(field(r, ^search_fields), :string), ^term))
+
   defp build_query(
          schema,
          search_fields,
@@ -114,32 +133,14 @@ defmodule Kaffy.ResourceQuery do
        ) do
     query = from(s in schema)
 
+
     query =
-      cond do
-        is_nil(search_fields) || Enum.empty?(search_fields) || search == "" ->
-          query
-
-        true ->
-          term =
-            search
-            |> String.replace("%", "\%")
-            |> String.replace("_", "\_")
-
-          term = "%#{term}%"
-
-          Enum.reduce(search_fields, query, fn
-            {association, fields}, q ->
-              query = from(s in q, join: a in assoc(s, ^association))
-
-              Enum.reduce(fields, query, fn f, current_query ->
-                from([..., r] in current_query,
-                  or_where: ilike(type(field(r, ^f), :string), ^term)
-                )
-              end)
-
-            f, q ->
-              from(s in q, or_where: ilike(type(field(s, ^f), :string), ^term))
-          end)
+      if is_nil(search_fields) || Enum.empty?(search_fields) || search == "" do
+        query
+      else
+        term = search |> String.replace("%", "\%") |> String.replace("_", "\_")
+        term = "%#{term}%"
+        build_search_query(query, search_fields, term)
       end
 
     query = build_filtered_fields_query(query, filtered_fields)
@@ -155,7 +156,6 @@ defmodule Kaffy.ResourceQuery do
   end
 
   defp build_filtered_fields_query(query, []), do: query
-
   defp build_filtered_fields_query(query, [filter | rest]) do
     query =
       case filter.value == "" do

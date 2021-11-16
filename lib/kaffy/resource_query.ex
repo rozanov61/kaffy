@@ -114,7 +114,7 @@ defmodule Kaffy.ResourceQuery do
   defp build_search_query(query, [{k, v} | tail], term, :last) do
     query
     |> join(:inner, [..., q], a in assoc(q, ^k))
-    |> build_search_query(v, term)
+    |> build_search_query(v, term, :last)
     |> build_search_query(tail, term)
   end
   defp build_search_query(query, search_fields, term, _join) when is_list(search_fields),

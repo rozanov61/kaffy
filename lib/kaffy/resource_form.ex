@@ -148,6 +148,12 @@ defmodule Kaffy.ResourceForm do
         number_input(form, field, opts)
 
       :float ->
+        opts =
+          case get_in(form.data, [Access.key!(field)]) do
+            value when is_float(value) ->
+              opts ++ [value: :erlang.float_to_binary(value, [:compact, {:decimals, 2}])]
+            _nil -> opts
+          end
         text_input(form, field, opts)
 
       :decimal ->

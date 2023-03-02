@@ -7,7 +7,7 @@ defmodule Kaffy.ResourceParams do
     attrs =
       Map.get(params, resource, %{})
       |> Enum.map(fn {k, v} ->
-        case k in map_fields && String.length(v) > 0 do
+        case k in map_fields && is_binary(v) && String.length(v) > 0 do
           true -> {k, Kaffy.Utils.json().decode!(v)}
           false -> {k, v}
         end

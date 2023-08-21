@@ -107,13 +107,13 @@ defmodule Kaffy.ResourceQuery do
   defp build_search_query(query, _search_fields, "", _join), do: query
   defp build_search_query(query, [{k, v} | tail], term, :first) do
     query
-    |> join(:inner, [q], a in assoc(q, ^k))
+    |> join(:left, [q], a in assoc(q, ^k))
     |> build_search_query(v, term, :last)
     |> build_search_query(tail, term)
   end
   defp build_search_query(query, [{k, v} | tail], term, :last) do
     query
-    |> join(:inner, [..., q], a in assoc(q, ^k))
+    |> join(:left, [..., q], a in assoc(q, ^k))
     |> build_search_query(v, term, :last)
     |> build_search_query(tail, term)
   end
